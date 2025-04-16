@@ -90,8 +90,8 @@ public class TaskManager {
     public void updateEpic(Epic epic) {
         Epic currentEpic = epics.get(epic.getId());
         if (currentEpic != null) {
-            currentEpic.title = epic.title;
-            currentEpic.description = epic.description;
+            currentEpic.setTitle(epic.getTitle());
+            currentEpic.setDescription(epic.getDescription());
         }
     }
 

@@ -1,8 +1,8 @@
 package model;
 
 public class Task {
-    public String title;
-    public String description;
+    protected String title;
+    protected String description;
     protected int id;
     protected Status status;
 
@@ -26,6 +26,22 @@ public class Task {
 
     public void setStatus(Status status) {
         this.status = status;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
     }
 
     @Override
