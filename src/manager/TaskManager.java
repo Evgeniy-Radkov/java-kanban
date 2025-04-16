@@ -1,3 +1,11 @@
+package manager;
+
+import model.Epic;
+import model.Task;
+import model.Subtask;
+import model.Status;
+
+
 import java.util.*;
 
 public class TaskManager {
@@ -6,7 +14,7 @@ public class TaskManager {
     private final Map<Integer, Subtask> subtasks = new HashMap<>();
     private int nextId = 1;
 
-    public int generateId() {
+    private int generateId() {
         return nextId++;
     }
 
@@ -64,11 +72,12 @@ public class TaskManager {
     }
 
     public void createSubtask(Subtask subtask) {
-        int id = generateId();
-        subtask.setId(id);
-        subtasks.put(id, subtask);
         Epic epic = epics.get(subtask.getEpicId());
         if (epic != null) {
+            int id = generateId();
+            subtask.setId(id);
+            subtasks.put(id, subtask);
+
             epic.addSubtaskId(id);
             updateEpicStatus(epic);
         }
@@ -83,7 +92,6 @@ public class TaskManager {
         if (currentEpic != null) {
             currentEpic.title = epic.title;
             currentEpic.description = epic.description;
-            updateEpicStatus(currentEpic);
         }
     }
 
