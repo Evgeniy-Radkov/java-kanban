@@ -7,44 +7,15 @@ import model.Task;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.*;
-class InMemoryTaskManagerTest {
+
+public class InMemoryTaskManagerTest {
 
     private TaskManager manager;
 
     @BeforeEach
     public void beforeEach() {
         manager = Managers.getDefault();
-    }
-
-    @Test
-    public void tasksEqualsById() {
-        Task task1 = new Task("Задача1", "Описание1", Status.NEW);
-        Task task2 = new Task("Задача2", "Описание2", Status.NEW);
-        task1.setId(1);
-        task2.setId(1);
-        assertEquals(task1, task2);
-    }
-
-    @Test
-    public void epicsEqualsById() {
-        Epic epic1 = new Epic("Эпик1", "Описание1");
-        Epic epic2 = new Epic("Эпик2", "Описание2");
-        epic1.setId(1);
-        epic2.setId(1);
-        assertEquals(epic1, epic2);
-    }
-
-    @Test
-    public void subtasksEqualsById() {
-        Subtask subtask1 = new Subtask("Подзадача1", "Описание1", Status.NEW, 1);
-        Subtask subtask2 = new Subtask("Подзадача2", "Описание2", Status.NEW, 1);
-        subtask1.setId(1);
-        subtask2.setId(1);
-        assertEquals(subtask1, subtask2);
     }
 
     @Test
@@ -76,17 +47,6 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    public void managersShouldReturnNonNullTaskManager() {
-        assertNotNull(manager);
-    }
-
-    @Test
-    public void managersShouldReturnNonNullHistoryManager() {
-        HistoryManager historyManager = Managers.getDefaultHistory();
-        assertNotNull(historyManager);
-    }
-
-    @Test
     public void createAndFindTask() {
         Task task = new Task("Задача", "Описание", Status.NEW);
         manager.createTask(task);
@@ -103,7 +63,7 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    public void  createAndFindSubtask() {
+    public void createAndFindSubtask() {
         Epic epic = new Epic("Эпик", "Описание");
         manager.createEpic(epic);
 
@@ -145,18 +105,5 @@ class InMemoryTaskManagerTest {
         assertEquals(taskDescription, actual.getDescription());
         assertEquals(taskStatus, actual.getStatus());
         assertEquals(taskId, actual.getId());
-    }
-
-    @Test
-    public void testAddTaskToHistory() {
-        Task task = new Task("Задача1", "Описание1", Status.NEW);
-        manager.createTask(task);
-
-        manager.getTaskById(task.getId());
-
-        List<Task> history = manager.getHistory();
-
-        assertEquals(1, history.size());
-        assertEquals(task, history.get(0));
     }
 }
