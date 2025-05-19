@@ -4,7 +4,7 @@ import model.Task;
 
 import java.util.*;
 
-public class InMemoryHistoryManager implements HistoryManager{
+public class InMemoryHistoryManager implements HistoryManager {
 
     private Node head;
     private Node tail;
@@ -84,7 +84,7 @@ public class InMemoryHistoryManager implements HistoryManager{
         Node previous;
         Node next;
 
-        Node (Task task, Node previous, Node next) {
+        Node(Task task, Node previous, Node next) {
             this.task = task;
             this.previous = previous;
             this.next = next;
