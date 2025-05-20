@@ -7,6 +7,8 @@ import model.Task;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class InMemoryTaskManagerTest {
@@ -105,5 +107,46 @@ public class InMemoryTaskManagerTest {
         assertEquals(taskDescription, actual.getDescription());
         assertEquals(taskStatus, actual.getStatus());
         assertEquals(taskId, actual.getId());
+    }
+
+    @Test
+    public void testEpicDoesNotContainDeletedSubtaskId() {
+        Epic epic = new Epic("Эпик", "Описание");
+        manager.createEpic(epic);
+
+        Subtask subtask1 = new Subtask("Подзадача 1", "Описание 1", Status.NEW, epic.getId());
+        Subtask subtask2 = new Subtask("Подзадача 2", "Описание 2", Status.NEW, epic.getId());
+        manager.createSubtask(subtask1);
+        manager.createSubtask(subtask2);
+
+        manager.deleteSubtaskById(subtask1.getId());
+
+        Epic updateEpic = manager.getEpicById(epic.getId());
+
+        List<Integer> subtaskIds = updateEpic.getSubtaskIds();
+        assertEquals(1, subtaskIds.size());
+        assertTrue(subtaskIds.contains(subtask2.getId()));
+        assertFalse(subtaskIds.contains(subtask1.getId()));
+    }
+
+    @Test
+    public void testTaskChangesSavedInManager() {
+        Task task = new Task("Задача 1", "Описание 1", Status.NEW);
+        manager.createTask(task);
+
+        Task actual = manager.getTaskById(task.getId());
+        actual.setTitle("Task 1");
+        actual.setDescription("Description 1");
+        actual.setStatus(Status.IN_PROGRESS);
+        /*  В текущей реализации экземпляры задач можно изменить извне через сеттеры
+        Возможное решение — возвращать копии задач, чтобы избежать изменения задачи напрямую,
+        то есть вносить изменения через updateTask()
+         */
+
+        Task fromManager = manager.getTaskById(task.getId());
+
+        assertEquals("Task 1", fromManager.getTitle());
+        assertEquals("Description 1", fromManager.getDescription());
+        assertEquals(Status.IN_PROGRESS, fromManager.getStatus());
     }
 }

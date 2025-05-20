@@ -59,6 +59,42 @@ public class Main {
 
         System.out.println("Оставшиеся подзадачи:");
         System.out.println(manager.getAllSubtasks());
+
+
+        // ------------------ РАБОТА С ИСТОРИЕЙ ------------------
+
+        // Просматриваем задачи и подзадачи в разном порядке
+        manager.getTaskById(task2.getId());
+        manager.getEpicById(epic1.getId());
+        manager.getSubtaskById(sub1.getId());
+        manager.getSubtaskById(sub2.getId());
+        manager.getSubtaskById(sub3.getId());
+        manager.getEpicById(epic2.getId());
+
+        // Выводим историю после просмотров
+        System.out.println("\nИстория просмотров после обращений:");
+        for (Task t : manager.getHistory()) {
+            System.out.println(t);
+        }
+
+        // Удаляем задачу, которая есть в истории
+        manager.deleteTaskById(task2.getId());
+
+        // Проверяем, что удалённая задача исчезла из истории
+        System.out.println("\nИстория после удаления task2:");
+        for (Task t : manager.getHistory()) {
+            System.out.println(t);
+        }
+
+        // Удаляем эпик с подзадачами
+        manager.deleteEpicById(epic1.getId());
+
+        // Проверяем, что эпик и его подзадачи исчезли из истории
+        System.out.println("\nИстория после удаления epic1 (и его подзадач):");
+        for (Task t : manager.getHistory()) {
+            System.out.println(t);
+        }
+
     }
 }
 

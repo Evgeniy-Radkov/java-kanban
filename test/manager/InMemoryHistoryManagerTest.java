@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class InMemoryHistoryManagerTest {
 
@@ -30,4 +30,52 @@ public class InMemoryHistoryManagerTest {
         assertEquals(1, history.size());
         assertEquals(task, history.get(0));
     }
+
+    @Test
+    public void testRepeatViewOfTaskStoredOnce() {
+        Task task = new Task("Задача 1", "Описание 1", Status.NEW);
+        manager.createTask(task);
+
+        manager.getTaskById(task.getId());
+        manager.getTaskById(task.getId());
+
+        List<Task> history = manager.getHistory();
+
+        assertEquals(1, history.size());
+        assertEquals(task, history.get(0));
+    }
+
+    @Test
+    public void testTaskRemovedFromHistoryWhenDeleted() {
+        Task task = new Task("Задача 1", "Описание 1", Status.NEW);
+        manager.createTask(task);
+
+        manager.getTaskById(task.getId());
+        manager.deleteTaskById(task.getId());
+
+        List<Task> history = manager.getHistory();
+
+        assertTrue(history.isEmpty());
+    }
+
+    @Test
+    public void testTasksAppearInHistoryInViewedOrder() {
+        Task task1 = new Task("Задача 1", "Описание 1", Status.NEW);
+        Task task2 = new Task("Задача 2", "Описание 2", Status.NEW);
+        Task task3 = new Task("Задача 3", "Описание 3", Status.NEW);
+        manager.createTask(task1);
+        manager.createTask(task2);
+        manager.createTask(task3);
+
+        manager.getTaskById(task2.getId());
+        manager.getTaskById(task1.getId());
+        manager.getTaskById(task3.getId());
+
+        List<Task> history = manager.getHistory();
+
+        assertEquals(task2, history.get(0));
+        assertEquals(task1, history.get(1));
+        assertEquals(task3, history.get(2));
+    }
+
 }
