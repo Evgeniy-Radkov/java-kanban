@@ -8,6 +8,7 @@ public class Subtask extends Task {
         this.epicId = epicId;
     }
 
+    @Override
     public TaskType getType() {
         return TaskType.SUBTASK;
     }
