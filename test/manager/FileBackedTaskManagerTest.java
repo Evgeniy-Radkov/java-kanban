@@ -1,5 +1,6 @@
 package manager;
 
+import exception.ManagerSaveException;
 import model.Epic;
 import model.Status;
 import model.Subtask;
@@ -116,6 +117,33 @@ public class FileBackedTaskManagerTest {
         assertEquals(subtask2.getDescription(), loadedSubtask2.getDescription());
         assertEquals(subtask2.getStatus(), loadedSubtask2.getStatus());
         assertEquals(subtask2.getEpicId(), loadedSubtask2.getEpicId());
+    }
 
+    @Test
+    void shouldThrowWhenLoadingCorruptedFile() throws IOException {
+        File corruptedFile = File.createTempFile("corrupted", ".csv");
+
+        // Пишем явно не верную строку, не соответствующую формату CSV задач
+        try (var writer = new java.io.FileWriter(corruptedFile)) {
+            writer.write("это,не,верный,формат\n34,broken,data");
+        }
+
+        assertThrows(ManagerSaveException.class, () -> {
+            FileBackedTaskManager.loadFromFile(corruptedFile);
+        }, "Должно быть выброшено исключение при загрузке из битого файла");
+
+        corruptedFile.delete();
+    }
+
+    @Test
+    void shouldNotThrowOnValidSaveAndLoad() {
+        Task task = new Task("Верная задача", "Описание", Status.NEW);
+        manager.createTask(task);
+
+        assertDoesNotThrow(() -> {
+            FileBackedTaskManager loaded = FileBackedTaskManager.loadFromFile(tempFile);
+            Task restored = loaded.getTaskById(task.getId());
+            assertEquals(task.getTitle(), restored.getTitle());
+        });
     }
 }

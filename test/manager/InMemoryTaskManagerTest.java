@@ -7,17 +7,17 @@ import model.Task;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class InMemoryTaskManagerTest {
+public class InMemoryTaskManagerTest extends TaskManagerTest<TaskManager> {
 
-    private TaskManager manager;
-
-    @BeforeEach
-    public void beforeEach() {
-        manager = Managers.getDefault();
+    @Override
+    protected TaskManager createManager() {
+        return Managers.getDefault();
     }
 
     @Test
@@ -49,104 +49,57 @@ public class InMemoryTaskManagerTest {
     }
 
     @Test
-    public void createAndFindTask() {
-        Task task = new Task("Задача", "Описание", Status.NEW);
-        manager.createTask(task);
-
-        assertEquals(task, manager.getTaskById(task.getId()));
-    }
-
-    @Test
-    public void createAndFindEpic() {
-        Epic epic = new Epic("Эпик", "Описание");
+    void epicTimeFieldsCalculatedCorrectly() {
+        Epic epic = new Epic("Epic", "Description");
         manager.createEpic(epic);
 
-        assertEquals(epic, manager.getEpicById(epic.getId()));
+        Subtask s1 = new Subtask("S1", "Desc", Status.NEW, epic.getId());
+        s1.setStartTime(LocalDateTime.of(2023, 1, 1, 10, 0));
+        s1.setDuration(Duration.ofMinutes(30));
+
+        Subtask s2 = new Subtask("S2", "Desc", Status.NEW, epic.getId());
+        s2.setStartTime(LocalDateTime.of(2023, 1, 1, 11, 0));
+        s2.setDuration(Duration.ofMinutes(90));
+
+        manager.createSubtask(s1);
+        manager.createSubtask(s2);
+
+        Epic updated = manager.getEpicById(epic.getId());
+
+        assertEquals(LocalDateTime.of(2023, 1, 1, 10, 0), updated.getStartTime());
+        assertEquals(LocalDateTime.of(2023, 1, 1, 12, 30), updated.getEndTime());
+        assertEquals(Duration.ofMinutes(120), updated.getDuration());
     }
 
     @Test
-    public void createAndFindSubtask() {
-        Epic epic = new Epic("Эпик", "Описание");
-        manager.createEpic(epic);
+    void prioritizedTasksSortedByStartTime() {
+        Task t1 = new Task("задача1", "описание1", Status.NEW);
+        t1.setStartTime(LocalDateTime.of(2023, 1, 1, 9, 0));
+        t1.setDuration(Duration.ofMinutes(60));
+        manager.createTask(t1);
 
-        Subtask subtask = new Subtask("Подзадача", "Описание", Status.NEW, epic.getId());
-        manager.createSubtask(subtask);
+        Task t2 = new Task("задача2", "описание2", Status.NEW);
+        t2.setStartTime(LocalDateTime.of(2023, 1, 1, 8, 0));
+        t2.setDuration(Duration.ofMinutes(60));
+        manager.createTask(t2);
 
-        assertEquals(subtask, manager.getSubtaskById(subtask.getId()));
+        List<Task> prioritized = manager.getPrioritizedTasks();
+
+        assertEquals(t2, prioritized.get(0));
+        assertEquals(t1, prioritized.get(1));
     }
 
     @Test
-    public void testUniqueIdsForTasks() {
-        Task task1 = new Task("Задача1", "Описание1", Status.NEW);
-        manager.createTask(task1);
+    void shouldThrowIfTasksOverlap() {
+        Task t1 = new Task("задача1", "описание1", Status.NEW);
+        t1.setStartTime(LocalDateTime.of(2023, 1, 1, 9, 0));
+        t1.setDuration(Duration.ofMinutes(60));
+        manager.createTask(t1);
 
-        Task task2 = new Task("Задача2", "Описание2", Status.NEW);
-        manager.createTask(task2);
+        Task t2 = new Task("задача2", "описание2", Status.NEW);
+        t2.setStartTime(LocalDateTime.of(2023, 1, 1, 9, 30));
+        t2.setDuration(Duration.ofMinutes(60));
 
-        assertNotEquals(task1.getId(), task2.getId());
-        assertEquals(task1, manager.getTaskById(task1.getId()));
-        assertEquals(task2, manager.getTaskById(task2.getId()));
-    }
-
-    @Test
-    public void testSaveTaskFields() {
-        Task task = new Task("Задача1", "Описание1", Status.NEW);
-
-        String taskTitle = task.getTitle();
-        String taskDescription = task.getDescription();
-        Status taskStatus = task.getStatus();
-
-
-        manager.createTask(task);
-
-        int taskId = task.getId();
-
-        Task actual = manager.getTaskById(task.getId());
-
-        assertEquals(taskTitle,actual.getTitle());
-        assertEquals(taskDescription, actual.getDescription());
-        assertEquals(taskStatus, actual.getStatus());
-        assertEquals(taskId, actual.getId());
-    }
-
-    @Test
-    public void testEpicDoesNotContainDeletedSubtaskId() {
-        Epic epic = new Epic("Эпик", "Описание");
-        manager.createEpic(epic);
-
-        Subtask subtask1 = new Subtask("Подзадача 1", "Описание 1", Status.NEW, epic.getId());
-        Subtask subtask2 = new Subtask("Подзадача 2", "Описание 2", Status.NEW, epic.getId());
-        manager.createSubtask(subtask1);
-        manager.createSubtask(subtask2);
-
-        manager.deleteSubtaskById(subtask1.getId());
-
-        Epic updateEpic = manager.getEpicById(epic.getId());
-
-        List<Integer> subtaskIds = updateEpic.getSubtaskIds();
-        assertEquals(1, subtaskIds.size());
-        assertTrue(subtaskIds.contains(subtask2.getId()));
-        assertFalse(subtaskIds.contains(subtask1.getId()));
-    }
-
-    @Test
-    public void testTaskChangesSavedInManager() {
-        Task task = new Task("Задача 1", "Описание 1", Status.NEW);
-        manager.createTask(task);
-
-        Task actual = manager.getTaskById(task.getId());
-        actual.setTitle("Task 1");
-        actual.setDescription("Description 1");
-        actual.setStatus(Status.IN_PROGRESS);
-        /*  В текущей реализации экземпляры задач можно изменить извне через сеттеры
-        Возможное решение — возвращать копии задач, чтобы избежать изменения задачи напрямую,
-        то есть вносить изменения через updateTask()
-         */
-
-        Task fromManager = manager.getTaskById(task.getId());
-
-        assertEquals("Task 1", fromManager.getTitle());
-        assertEquals("Description 1", fromManager.getDescription());
-        assertEquals(Status.IN_PROGRESS, fromManager.getStatus());
+        assertThrows(RuntimeException.class, () -> manager.createTask(t2));
     }
 }
