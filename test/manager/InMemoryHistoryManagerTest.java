@@ -78,4 +78,34 @@ public class InMemoryHistoryManagerTest {
         assertEquals(task3, history.get(2));
     }
 
+    @Test
+    void removeFromHistoryVariants() {
+        Task t1 = new Task("t1", "d1", Status.NEW);
+        Task t2 = new Task("t2", "d2", Status.NEW);
+        Task t3 = new Task("t3", "d3", Status.NEW);
+        manager.createTask(t1);
+        manager.createTask(t2);
+        manager.createTask(t3);
+
+
+        manager.getTaskById(t1.getId());
+        manager.getTaskById(t2.getId());
+        manager.getTaskById(t3.getId());
+
+
+        manager.deleteTaskById(t1.getId());
+        assertFalse(manager.getHistory().contains(t1));
+
+
+        manager.getTaskById(t1.getId());
+        manager.getTaskById(t2.getId());
+        manager.getTaskById(t3.getId());
+
+        manager.deleteTaskById(t2.getId());
+        assertFalse(manager.getHistory().contains(t2));
+
+
+        manager.deleteTaskById(t3.getId());
+        assertFalse(manager.getHistory().contains(t3));
+    }
 }
