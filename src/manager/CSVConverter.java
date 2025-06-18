@@ -29,7 +29,7 @@ public class CSVConverter {
         if (task.getStartTime() != null) {
             startTime = task.getStartTime().toString();
         } else {
-            startTime = "null";
+            startTime = "";
         }
 
         long duration;
@@ -63,7 +63,7 @@ public class CSVConverter {
             case TASK:
                 Task task = new Task(name, description, status);
                 task.setId(id);
-                if (!split[6].equals("null")) {
+                if (!split[6].isEmpty()) {
                     task.setStartTime(LocalDateTime.parse(split[6]));
                 }
                 task.setDuration(Duration.ofMinutes(Long.parseLong(split[7])));
@@ -77,7 +77,7 @@ public class CSVConverter {
                 int epicId = Integer.parseInt(split[5]);
                 Subtask subtask = new Subtask(name, description, status, epicId);
                 subtask.setId(id);
-                if (!split[6].equals("null")) {
+                if (!split[6].isEmpty()) {
                     subtask.setStartTime(LocalDateTime.parse(split[6]));
                 }
                 subtask.setDuration(Duration.ofMinutes(Long.parseLong(split[7])));
