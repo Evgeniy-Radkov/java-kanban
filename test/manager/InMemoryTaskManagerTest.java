@@ -1,5 +1,6 @@
 package manager;
 
+import exception.NotFoundException;
 import model.Epic;
 import model.Status;
 import model.Subtask;
@@ -26,10 +27,11 @@ public class InMemoryTaskManagerTest extends TaskManagerTest<TaskManager> {
         manager.createEpic(epic);
 
         Subtask subtask = new Subtask("Подзадача", "Описание", Status.NEW, 111);
-        manager.createSubtask(subtask);
 
-        assertTrue(manager.getAllSubtasks().isEmpty());
-
+        assertThrows(
+                NotFoundException.class,
+                () -> manager.createSubtask(subtask)
+        );
     }
 
     @Test
@@ -39,13 +41,10 @@ public class InMemoryTaskManagerTest extends TaskManagerTest<TaskManager> {
 
         Subtask subtask = new Subtask("Подзадача", "Описание", Status.NEW, 111);
 
-        int before = manager.getAllSubtasks().size();
-
-        manager.createSubtask(subtask);
-
-        int after = manager.getAllSubtasks().size();
-
-        assertEquals(before, after, "Подзадача с некорректным epicId не должна добавляться");
+        assertThrows(
+                NotFoundException.class,
+                () -> manager.createSubtask(subtask)
+        );
     }
 
     @Test

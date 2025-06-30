@@ -1,5 +1,6 @@
 package manager;
 
+import exception.NotFoundException;
 import model.Status;
 import model.Task;
 import org.junit.jupiter.api.BeforeEach;
@@ -92,20 +93,25 @@ public class InMemoryHistoryManagerTest {
         manager.getTaskById(t2.getId());
         manager.getTaskById(t3.getId());
 
-
         manager.deleteTaskById(t1.getId());
         assertFalse(manager.getHistory().contains(t1));
 
 
-        manager.getTaskById(t1.getId());
+        assertThrows(NotFoundException.class,
+                () -> manager.getTaskById(t1.getId()));
+
+
         manager.getTaskById(t2.getId());
         manager.getTaskById(t3.getId());
 
         manager.deleteTaskById(t2.getId());
         assertFalse(manager.getHistory().contains(t2));
-
+        assertThrows(NotFoundException.class,
+                () -> manager.getTaskById(t2.getId()));
 
         manager.deleteTaskById(t3.getId());
         assertFalse(manager.getHistory().contains(t3));
+        assertThrows(NotFoundException.class,
+                () -> manager.getTaskById(t3.getId()));
     }
 }
