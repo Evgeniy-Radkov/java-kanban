@@ -10,7 +10,6 @@ import model.Task;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
-import java.util.Objects;
 
 public class TaskHandler extends BaseHttpHandler {
     public TaskHandler(TaskManager manager) {

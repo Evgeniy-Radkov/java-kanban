@@ -2,15 +2,12 @@ package server.handler;
 
 import com.google.gson.JsonSyntaxException;
 import com.sun.net.httpserver.HttpExchange;
-import exception.HasIntersectionException;
 import exception.NotFoundException;
 import manager.TaskManager;
 import model.Epic;
-import model.Task;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.List;
 
 public class EpicHandler extends  BaseHttpHandler {
 
