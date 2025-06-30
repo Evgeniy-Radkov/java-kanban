@@ -20,7 +20,7 @@ public abstract class BaseHttpHandler implements HttpHandler {
                 .registerTypeAdapter(Duration.class, new DurationAdapter())
                 .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
                 .create();
-    };
+    }
     protected final TaskManager manager;
     protected final Gson gson;
 
