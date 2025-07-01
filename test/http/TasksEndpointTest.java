@@ -1,60 +1,79 @@
 package http;
 
-import com.google.gson.Gson;
 import model.Status;
 import model.Task;
 import org.junit.jupiter.api.Test;
-import server.HttpTaskServer;
 
 import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.time.Duration;
-import java.time.LocalDateTime;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
-public class TasksEndpointTest extends AbstractHttpTest {
-    private static final Gson GSON = HttpTaskServer.getGson();
+class TasksEndpointTest extends AbstractHttpTest {
 
     @Test
-    void shouldReturn200OnEmptyGet() throws Exception {
+    void postCreatesTask() throws Exception {
+        Task task = new Task("task1", "desc1", Status.NEW);
         HttpRequest req = HttpRequest.newBuilder()
                 .uri(URI.create("http://localhost:8080/tasks"))
-                .GET()
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(GSON.toJson(task)))
                 .build();
 
-        var resp = client.send(req, HttpResponse.BodyHandlers.ofString());
-        assertEquals(200, resp.statusCode());
-        assertEquals("[]", resp.body());
-    }
-
-    @Test
-    void shouldCreateTaskAndAppearInManager() throws Exception {
-        Task task = new Task("Test", "From HTTP", Status.NEW);
-        task.setDuration(Duration.ofMinutes(30));
-        task.setStartTime(LocalDateTime.now());
-
-        String json = GSON.toJson(task);
-
-        var post = HttpRequest.newBuilder(URI.create("http://localhost:8080/tasks"))
-                .POST(HttpRequest.BodyPublishers.ofString(json))
-                .build();
-        var resp = client.send(post, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> resp = client.send(req, HttpResponse.BodyHandlers.ofString());
         assertEquals(201, resp.statusCode());
-
         assertEquals(1, manager.getAllTasks().size());
-        assertEquals("Test", manager.getAllTasks().get(0).getTitle());
     }
 
     @Test
-    void shouldReturn404ForUnknownId() throws Exception {
-        var req = HttpRequest.newBuilder()
-                .uri(URI.create("http://localhost:8080/tasks?id=999"))
-                .GET()
-                .build();
-        var resp = client.send(req, HttpResponse.BodyHandlers.ofString());
+    void getReturnsConcreteTask() throws Exception {
+        Task task = new Task("task2", "desc2", Status.NEW);
+        manager.createTask(task);
 
+        HttpRequest req = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:8080/tasks?id=" + task.getId()))
+                .GET().build();
+
+        HttpResponse<String> resp = client.send(req, HttpResponse.BodyHandlers.ofString());
+        assertEquals(200, resp.statusCode());
+
+        Task fromApi = GSON.fromJson(resp.body(), Task.class);
+        assertEquals(task.getTitle(), fromApi.getTitle());
+    }
+
+    @Test
+    void deleteRemovesTask() throws Exception {
+        Task task = new Task("task3", "desc3", Status.NEW);
+        manager.createTask(task);
+
+        HttpRequest req = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:8080/tasks?id=" + task.getId()))
+                .DELETE().build();
+        HttpResponse<String> resp = client.send(req, HttpResponse.BodyHandlers.ofString());
+
+        assertEquals(200, resp.statusCode());
+        assertTrue(manager.getAllTasks().isEmpty());
+    }
+
+    @Test
+    void getUnknownTaskReturns404() throws Exception {
+        HttpRequest req = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:8080/tasks?id=123"))
+                .GET().build();
+
+        HttpResponse<String> resp = client.send(req, HttpResponse.BodyHandlers.ofString());
         assertEquals(404, resp.statusCode());
     }
+
+    @Test
+    void deleteUnknownTaskReturns404() throws Exception {
+        HttpRequest req = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:8080/tasks?id=123"))
+                .DELETE().build();
+
+        HttpResponse<String> resp = client.send(req, HttpResponse.BodyHandlers.ofString());
+        assertEquals(404, resp.statusCode());
+    }
+
 }

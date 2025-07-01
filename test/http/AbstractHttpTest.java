@@ -1,5 +1,6 @@
 package http;
 
+import com.google.gson.Gson;
 import manager.InMemoryTaskManager;
 import manager.TaskManager;
 import org.junit.jupiter.api.AfterEach;
@@ -10,9 +11,11 @@ import java.io.IOException;
 import java.net.http.HttpClient;
 
 public abstract class AbstractHttpTest {
-    protected TaskManager manager;
+    protected static final Gson GSON = HttpTaskServer.getGson();
+
+    protected TaskManager   manager;
     protected HttpTaskServer server;
-    protected HttpClient client;
+    protected HttpClient    client;
 
     @BeforeEach
     void beforeEach() throws IOException {
